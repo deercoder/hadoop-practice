@@ -19,10 +19,13 @@ public class HelloWorld {
 		@Override
 		public void map(LongWritable key, Text value, OutputCollector<Text, IntWritable> output, Reporter reporter)
 				throws IOException {
-			// TODO Auto-generated method stub
+			// get the input string from the file
 			String line = value.toString();
+			// treat each string and split by space by default
 			StringTokenizer tokenizer = new StringTokenizer(line);
+			// get words and do iteratively
 			while (tokenizer.hasMoreTokens()) {
+				// for each word, eject (word, 1) as one item, for example ("Hello", 1)
 				word.set(tokenizer.nextToken());
 				output.collect(word, one);
 			}
@@ -37,7 +40,9 @@ public class HelloWorld {
 			// TODO Auto-generated method stub
 			
 			int sum = 0;
+			// continuously get the items and merge the count value
 			while (values.hasNext()) {
+				// here next means the second value, which is "1" for an item
 				sum += values.next().get();
 			}
 			output.collect(key, new IntWritable(sum));
