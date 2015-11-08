@@ -58,7 +58,7 @@ public class HelloWorld {
 		conf.setOutputFormat(TextOutputFormat.class);
 		
 		FileInputFormat.setInputPaths(conf, new Path("file0*"));
-		FileOutputFormat.setOutputPath(conf, new Path("~/input"));
+		FileOutputFormat.setOutputPath(conf, new Path("input"));
 		
 		JobClient.runJob(conf);
 		
