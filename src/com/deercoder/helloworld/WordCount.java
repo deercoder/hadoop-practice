@@ -13,6 +13,13 @@ import org.apache.hadoop.util.*;
 
 public class WordCount extends Configured implements Tool {
 
+	/**
+	 * Mapper has four parameters, they are the inputkey, input value, outputkey, output value type
+	 * Here, for Map class, the input is the index(longwritable), and the whole text content for this list
+	 * the output, is the pair of <word, num>, so it is Text Type and IntWritable
+	 * @author Chang Liu<chang_liu@student.uml.edu>
+	 *
+	 */
 	public static class Map extends Mapper<LongWritable, Text, Text, IntWritable> {
 
 		private final static IntWritable one = new IntWritable(1);
@@ -28,6 +35,13 @@ public class WordCount extends Configured implements Tool {
 		}
 	}
 
+	/**
+	 * Reducer has four parameters, they are the inputkey, input value, outputkey, output value type
+	 * Here, for Reduce class, the input is mapper's output, which is <Text, Intwritable> type
+	 * the output, is the pair of result, which means each word and its count, type is also <Text, IntWritable>
+	 * @author Chang Liu<chang_liu@student.uml.edu>
+	 *
+	 */
 	public static class Reduce extends Reducer<Text, IntWritable, Text, IntWritable> {
 
 		public void reduce(Text key, Iterable<IntWritable> values, Context context)
