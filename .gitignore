@@ -14,3 +14,9 @@ hs_err_pid*
 # for eclipse
 .classpath
 .project
+
+# for generated obj
+bin/
+ex1/._SUCCESS.crc
+ex1/.part-00000.crc
+input/
