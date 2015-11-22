@@ -37,15 +37,15 @@ public class HandleJoint extends Configured implements Tool {
 
 			// first judge which table it's from(city or language)
 			String line = value.toString();
-			if (line.charAt(0) >= '0' && line.charAt(0) <= '9') { // city table, first is digital number
-				String[] list = line.split(",");
+			String[] list = line.split(",");
+
+			if (list.length > 4) { // country table, has more items
 				String cityName = list[1];
 				String countryCode = list[2];
 				context.write(new Text(countryCode), new Text(cityName));
 				System.out.println("#DEBUG: " + list[1] + " " + list[2]);
 			}
 			else { // country language
-				String[] list = line.split(",");
 				String countryCode = list[0];
 				String language = list[1];
 				if (language.compareTo("English") == 0) {
@@ -85,7 +85,7 @@ public class HandleJoint extends Configured implements Tool {
 		job.setInputFormatClass(TextInputFormat.class);
 		job.setOutputFormatClass(TextOutputFormat.class);
 
-		FileInputFormat.setInputPaths(job, new Path("data/city.txt"));
+		FileInputFormat.setInputPaths(job, new Path("data/country.txt"));
 		FileInputFormat.addInputPath(job, new Path("data/countrylanguage.txt"));
 		FileOutputFormat.setOutputPath(job, new Path("ex3"));
 
