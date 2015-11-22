@@ -59,6 +59,17 @@ public class SingleJoint extends Configured implements Tool {
 
 	public static class Reduce extends Reducer<Text, Text, Text, Text> {
 
+		/**
+		 *  This bug is called because the type don't match what we defined, the key here is should be Text type
+		 *  but before we use the LongWritable, they mismatch, hadoop will try to convert the type, but gives
+		 *  no error information, that's why we can get some output result, but we cannot see that executiion of
+		 *  reduce() function.
+		 * @param key
+		 * @param values
+		 * @param context
+		 * @throws IOException
+		 * @throws InterruptedException
+		 */
 		public void reduce(Text key, Iterable<Text> values, Context context)
 				throws IOException, InterruptedException {
 			System.out.println("ooooooooooooooo");
