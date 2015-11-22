@@ -104,7 +104,7 @@ public class HandleSelection {
 		conf.setInputFormat(TextInputFormat.class);
 		conf.setOutputFormat(TextOutputFormat.class);
 
-		FileInputFormat.setInputPaths(conf, new Path("city.txt"));
+		FileInputFormat.setInputPaths(conf, new Path("data/city.txt"));
 		FileOutputFormat.setOutputPath(conf, new Path("ex1"));
 
 		JobClient.runJob(conf);
