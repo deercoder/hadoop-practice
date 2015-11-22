@@ -149,8 +149,8 @@ public class HandleProjection extends Configured implements Tool {
 		/**
 		 * Set the input and output directory/path of the input files
 		 */
-		FileInputFormat.setInputPaths(job, new Path("city.txt*"));
-		FileOutputFormat.setOutputPath(job, new Path("ex2_output"));
+		FileInputFormat.setInputPaths(job, new Path("city.txt"));
+		FileOutputFormat.setOutputPath(job, new Path("ex2"));
 
 		boolean success = job.waitForCompletion(true);
 

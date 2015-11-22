@@ -15,6 +15,15 @@ import org.apache.hadoop.util.*;
  * This Program is used to build the relationship between different tables We
  * can learn how to use MapReduce to handle them in just one table
  * 
+ * 
+ * factory:
+ * factoryname addressID
+ * 
+ * address:
+ * addressID city
+ * 
+ * Used the joint key `addressID` to genereate the pair(factoryname, city).
+ * 
  * @author Chang Liu
  *
  */
