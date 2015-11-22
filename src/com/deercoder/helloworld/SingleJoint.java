@@ -59,7 +59,7 @@ public class SingleJoint extends Configured implements Tool {
 
 	public static class Reduce extends Reducer<Text, Text, Text, Text> {
 
-		public void reduce(IntWritable key, Iterable<Text> values, Context context)
+		public void reduce(Text key, Iterable<Text> values, Context context)
 				throws IOException, InterruptedException {
 			System.out.println("ooooooooooooooo");
 			System.out.println(values.toString());
