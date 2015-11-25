@@ -3,112 +3,88 @@ package com.deercoder.ex1;
 import java.io.IOException;
 import java.util.*;
 
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.conf.*;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.*;
-import org.apache.hadoop.mapred.*;
-import org.apache.hadoop.mapreduce.Mapper.Context;
+import org.apache.hadoop.mapreduce.*;
+import org.apache.hadoop.mapreduce.lib.input.*;
+import org.apache.hadoop.mapreduce.lib.output.*;
 import org.apache.hadoop.util.*;
 
-public class HandleSelection {
+/**
+ * This Program is used to parse the city.txt and select the city whose
+ * population is larger than 300,000
+ * 
+ * city.txt: City (ID, Name, CountryCode, District, population)
+ * 
+ * 
+ * Use map() to emit that items and reduce() to merge cities and save result
+ * 
+ * @author Chang Liu
+ *
+ */
+public class HandleSelection extends Configured implements Tool {
 
-	public static class Map extends MapReduceBase implements Mapper<LongWritable, Text, Text, IntWritable> {
+	public static class Map extends Mapper<Object, Text, Text, Text> {
 
-		private String strID = "";
-		private String strName = "";
-		private String strCode = "";
-		private String strDistrict = "";
-		private String strPopulation = "";
+		public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
 
-		@Override
-		public void map(LongWritable key, Text value, OutputCollector<Text, IntWritable> output, Reporter reporter)
-				throws IOException {
-
+			// first judge which table it's from(city or language)
 			String line = value.toString();
+			String[] list = line.split(",");
 
-			// for debugging, print out each line
-			System.out.println(line);
+			// parse the line correctly with exact item size(id, name, countrycode, district, population)
+			if (list.length == 5) {
+				// get the city
+				String city = list[1];
+				// get population in numeric form
+				long population = Integer.parseInt(list[4]);
 
-			// split by comma
-			StringTokenizer tokenizerLine = new StringTokenizer(line, ",");
-
-			// split each line by the delim
-			while (tokenizerLine.hasMoreTokens()) {
-
-				// get the first element. NOTE: after tokenize the first token
-				// is ID
-				String strID = tokenizerLine.nextToken();
-
-				// for debugging
-				System.out.println("City ID: " + strID);
-
-				// parse every item(cityID, name, code, district, population)
-				// from each line
-				strName = tokenizerLine.nextToken();
-
-				System.out.println("strName = " + strName);
-
-				if (tokenizerLine.hasMoreTokens()) {
-
-					// after Name, it parse the code
-					strCode = tokenizerLine.nextToken();
-					System.out.println("strCode = " + strCode);
-
-					if (tokenizerLine.hasMoreTokens()) {
-
-						// after country code, it parse the district
-						strDistrict = tokenizerLine.nextToken();
-						System.out.println("strDistrict = " + strDistrict);
-
-						if (tokenizerLine.hasMoreTokens()) {
-
-							// at last, parse the population
-							strPopulation = tokenizerLine.nextToken();
-							System.out.println("strPopulation = " + strPopulation);
-
-						}
-					}
+				// emit the population that larger than 300,000
+				if (population > 300000) {
+					context.write(new Text(city), new Text(""));
 				}
-
-				Text name = new Text(strName);
-				long scoreInt = Integer.parseInt(strPopulation);
-				if (scoreInt > 300000) {
-					output.collect(name, new IntWritable());
-				}
+			} else {
+				System.out.println("Error when parsing the city.txt");
 			}
-
 		}
 	}
 
-	public static class Reduce extends MapReduceBase implements Reducer<Text, IntWritable, Text, IntWritable> {
+	public static class Reduce extends Reducer<Text, Text, Text, Text> {
 
-		@Override
-		public void reduce(Text key, Iterator<IntWritable> values, OutputCollector<Text, IntWritable> output,
-				Reporter reporter) throws IOException {
-
-			output.collect(key, new IntWritable());
-
+		public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
+			// emit all the items that has unique key, which is just the city name
+			context.write(new Text(key), new Text(""));
 		}
+	}
+
+	@Override
+	public int run(String[] args) throws Exception {
+
+		Job job = new Job(getConf());
+		job.setJarByClass(HandleSelection.class);
+		job.setJobName("HandleSelection");
+
+		job.setOutputKeyClass(Text.class);
+		job.setOutputValueClass(Text.class);
+
+		job.setMapperClass(Map.class);
+		job.setReducerClass(Reduce.class);
+
+		job.setInputFormatClass(TextInputFormat.class);
+		job.setOutputFormatClass(TextOutputFormat.class);
+
+		FileInputFormat.setInputPaths(job, new Path("data/city.txt"));
+		FileOutputFormat.setOutputPath(job, new Path("ex1"));
+
+		boolean success = job.waitForCompletion(true);
+
+		return success ? 0 : 1;
 	}
 
 	public static void main(String[] args) throws Exception {
-		JobConf conf = new JobConf(HandleSelection.class);
-		conf.setJobName("cityOps");
-
-		conf.setOutputKeyClass(Text.class);
-		conf.setOutputValueClass(IntWritable.class);
-
-		conf.setMapperClass(Map.class);
-		conf.setReducerClass(Reduce.class);
-
-		conf.setInputFormat(TextInputFormat.class);
-		conf.setOutputFormat(TextOutputFormat.class);
-
-		FileInputFormat.setInputPaths(conf, new Path("data/city.txt"));
-		FileOutputFormat.setOutputPath(conf, new Path("ex1"));
-
-		JobClient.runJob(conf);
-
+		int ret = ToolRunner.run(new HandleSelection(), args);
+		System.exit(ret);
 	}
 
 }
