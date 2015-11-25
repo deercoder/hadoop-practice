@@ -29,8 +29,6 @@ import org.apache.hadoop.util.*;
  */
 public class HandleAggregation extends Configured implements Tool {
 
-	private static int time = 0;
-
 	public static class Map extends Mapper<Object, Text, Text, IntWritable> {
 		
 		private IntWritable one = new IntWritable(1);
