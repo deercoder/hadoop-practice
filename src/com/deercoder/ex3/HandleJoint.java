@@ -16,11 +16,10 @@ import org.apache.hadoop.util.*;
  * can learn how to use MapReduce to handle them in just one table
  * 
  * 
- * city.txt:
- * City (ID, Name, CountryCode, District, population)
+ * city.txt: City (ID, Name, CountryCode, District, population)
  * 
- * countrylanguage.txt:
- * CountryLanguage (CountryCode, Language, IsOfficial, Percentage)
+ * countrylanguage.txt: CountryLanguage (CountryCode, Language, IsOfficial,
+ * Percentage)
  * 
  * Used the joint key `CountryCode` to generate the city lists.
  * 
@@ -29,10 +28,8 @@ import org.apache.hadoop.util.*;
  */
 public class HandleJoint extends Configured implements Tool {
 
-	private static int time = 0;
-
 	public static class Map extends Mapper<Object, Text, Text, Text> {
-		
+
 		public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
 
 			// first judge which table it's from(city or language)
@@ -40,12 +37,11 @@ public class HandleJoint extends Configured implements Tool {
 			String[] list = line.split(",");
 
 			if (list.length > 4) { // country table, has more items
-				String cityName = list[1];
-				String countryCode = list[2];
-				context.write(new Text(countryCode), new Text(cityName));
-				System.out.println("#DEBUG: " + list[1] + " " + list[2]);
-			}
-			else { // country language
+				String countryCode = list[0];
+				String countryName = list[1];
+				context.write(new Text(countryCode), new Text(countryName));
+				System.out.println("#DEBUG: " + list[0] + " " + list[1]);
+			} else { // country language
 				String countryCode = list[0];
 				String language = list[1];
 				if (language.compareTo("English") == 0) {
@@ -60,12 +56,27 @@ public class HandleJoint extends Configured implements Tool {
 
 		public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
 			Iterator ite = values.iterator();
+			int counter = 0;
+			String realcountry = "";
 			while (ite.hasNext()) {
 				String line = ite.next().toString();
+				//System.out.println("******:" + line);
 				if (!line.isEmpty()) {
-					context.write(new Text(line), new Text(""));
+					realcountry = line;
 				}
+				counter++;
 			}
+			/**
+			 * For those has more than 1 counter, it means having 1) country with English 2) country and name
+			 * If counter is less than 1, it means only emits the 2) country with name, that is not offically English
+			 * 
+			 * Note: these country name may be the same, like `Virgin Island` from British and US. but they're
+			 * different, we divide them by the key here(as Code), but their name is actually the same.
+			 */
+			if (counter > 1) {
+				context.write(new Text(realcountry), new Text(""));
+			}
+			
 		}
 	}
 
