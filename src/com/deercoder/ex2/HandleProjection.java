@@ -7,11 +7,22 @@ import org.apache.hadoop.conf.*;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.*;
 import org.apache.hadoop.mapreduce.*;
-import org.apache.hadoop.mapreduce.Reducer.Context;
 import org.apache.hadoop.mapreduce.lib.input.*;
 import org.apache.hadoop.mapreduce.lib.output.*;
 import org.apache.hadoop.util.*;
 
+/**
+ * This Program is used to parse the city.txt and select the city whose
+ * population is larger than 300,000
+ * 
+ * city.txt: City (ID, Name, CountryCode, District, population)
+ * 
+ * 
+ * Use map() to emit that items and reduce() to merge cities and save result
+ * 
+ * @author Chang Liu
+ *
+ */
 public class HandleProjection extends Configured implements Tool {
 
 	/**
@@ -23,71 +34,27 @@ public class HandleProjection extends Configured implements Tool {
 	 * @author Chang Liu<chang_liu@student.uml.edu>
 	 *
 	 */
-	public static class Map extends Mapper<LongWritable, Text, Text, Text> {
+	public static class Map extends Mapper<Object, Text, Text, Text> {
 
-		private String strID = "";
-		private String strName = "";
-		private String strCode = "";
-		private String strDistrict = "";
-		private String strPopulation = "";
+		public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
 
-		/**
-		 * The parameters of the map function, is the input parameter of Mapper,
-		 * which is index and its content
-		 */
-		@Override
-		public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-
+			// first judge which table it's from(city or language)
 			String line = value.toString();
+			String[] list = line.split(",");
 
-			// for debugging, print out each line
-			System.out.println(line);
+			// parse the line correctly with exact item size(id, name,
+			// countrycode, district, population)
+			if (list.length == 5) {
+				// get the city
+				String city = list[1];
+				// get population in numeric form
+				String district = list[3];
 
-			// split by comma
-			StringTokenizer tokenizerLine = new StringTokenizer(line, ",");
+				// emit the population that larger than 300,000
+				context.write(new Text(city), new Text(district));
 
-			// split each line by the delim
-			while (tokenizerLine.hasMoreTokens()) {
-
-				// get the first element. NOTE: after tokenize the first token
-				// is ID
-				String strID = tokenizerLine.nextToken();
-
-				// for debugging
-				System.out.println("City ID: " + strID);
-
-				// parse every item(cityID, name, code, district, population)
-				// from each line
-				strName = tokenizerLine.nextToken();
-
-				System.out.println("strName = " + strName);
-
-				if (tokenizerLine.hasMoreTokens()) {
-
-					// after Name, it parse the code
-					strCode = tokenizerLine.nextToken();
-					System.out.println("strCode = " + strCode);
-
-					if (tokenizerLine.hasMoreTokens()) {
-
-						// after country code, it parse the district
-						strDistrict = tokenizerLine.nextToken();
-						System.out.println("strDistrict = " + strDistrict);
-
-						if (tokenizerLine.hasMoreTokens()) {
-
-							// at last, parse the population
-							strPopulation = tokenizerLine.nextToken();
-							System.out.println("strPopulation = " + strPopulation);
-
-						}
-					}
-				}
-
-				Text name = new Text(strName);
-				Text district = new Text(strDistrict);
-
-				context.write(name, district);
+			} else {
+				System.out.println("Error when parsing the city.txt");
 			}
 		}
 	}
@@ -103,21 +70,16 @@ public class HandleProjection extends Configured implements Tool {
 	 */
 	public static class Reduce extends Reducer<Text, Text, Text, Text> {
 
-		/**
-		 * FOR reduce, connect all the districts from the SAME city
-		 */
 		public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
-
-			String whole = "";
-			for (Text val : values) {
-				whole += val.toString();
+			// combine all the districts that have the same city name
+			Iterator ite = values.iterator();
+			String total = "";
+			while (ite.hasNext()) {
+				String dis = ite.next().toString();
+				total += dis;
 			}
-			/**
-			 * Generate the output per list
-			 */
-			context.write(key, new Text(whole));
+			context.write(new Text(key), new Text(total));
 		}
-
 	}
 
 	@Override
@@ -125,7 +87,7 @@ public class HandleProjection extends Configured implements Tool {
 
 		Job job = new Job(getConf());
 		job.setJarByClass(HandleProjection.class);
-		job.setJobName("Projection");
+		job.setJobName("HandleProjection");
 
 		/**
 		 * Set the final output format, here it's city with its district, both
