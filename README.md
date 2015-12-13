@@ -24,5 +24,3 @@ This folder stores the necessary data source, code as well as the output for the
 ##Contact
 
 **Email**: Chang Liu(chang_liu@student.uml.edu)
-
-**Student ID**: 01516178
