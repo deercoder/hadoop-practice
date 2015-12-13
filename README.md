@@ -1,6 +1,14 @@
 README
 ===
 
+Hadoop project, MapReduce, Data Analysis, Java
+
+This project is to use Java to manuplate multiple text files with selecting, projection, natural joint and aggregation. All these operations are done with MapReduce process instead of database.
+
+The target of the project is to let us get familar with the MapReduce machnism, how to design reasonable Map and Reduce function, and how to dispatch/deploy the tasks in Hadoop.
+
+For details, check the *ProjectDescription.pdf*
+
 ##GUIDE
 
 This folder stores the necessary data source, code as well as the output for the *Advanced Database* Project, the structure is as follows:
